@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+images/*
+
+# exception to the rule above
+
+!images/.gitkeep 
