@@ -8,7 +8,4 @@ Still need to sort out one thing: when I save the output, it saves as the same f
 
 - Changes all output file extension to .jpeg
 - Output file quality is set to 90%
-
-## To fix
-
-- recursive function not working index.js 71 line
+- recursive function fixed

@@ -4,6 +4,7 @@ const sharp = require("sharp");
 
 const resizedPath = "./images/resized/"; // specify the output folder
 const maxSizeInMb = 0.9; // Specify file size in Mb
+const longEdgeTargetSize = 2500; // type the length of the long edge in pixels
 
 // Helper function to convert bytes to megabytes
 const convertToMb = (bytes) => bytes / (1024 * 1024);
@@ -61,18 +62,8 @@ async function resizeImage(imagePath, fileName, size, sequence = 1) {
   }
 }
 
-// Process image
-async function processImage(imagePath, fileName) {
-  try {
-    await resizeImage(imagePath, fileName, 2500);
-  } catch (error) {
-    console.log(`An error occurred during processing: ${error}`);
-  }
-}
-
 async function iteration(folderPath) {
   const filesToProcess = fs.readdirSync(folderPath).filter((file) => !file.startsWith("."));
-  console.log(filesToProcess);
 
   for (const file of filesToProcess) {
     const imagePath = path.resolve(folderPath, file);
@@ -82,7 +73,7 @@ async function iteration(folderPath) {
       const resizedImageFileName = generateFileName(file, 1);
       const resizedImagePath = path.resolve(resizedPath, resizedImageFileName);
       if (!fs.existsSync(resizedImagePath)) {
-        await processImage(imagePath, file);
+        await resizeImage(imagePath, file, longEdgeTargetSize);
       }
     }
   }
