@@ -4,4 +4,5 @@ images/*
 
 # exception to the rule above
 
-!images/.gitkeep 
+!images/.gitkeep
+testing.js

@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-const resizedPath = "./images/resized/";
-const maxSizeInMb = 0.9; // Specify threshold
+const resizedPath = "./images/resized/"; // specify the output folder
+const maxSizeInMb = 0.9; // Specify file size in Mb
 
 // Helper function to convert bytes to megabytes
 const convertToMb = (bytes) => bytes / (1024 * 1024);
@@ -20,70 +20,74 @@ function isSizeGreaterThanLimit(imagePath, limitInMb) {
   return sizeInMb > limitInMb;
 }
 
-// Resize image and save
-async function resizeImage(imagePath, fileName, size) {
+// Swap the original file extension with jpeg
+const generateFileName = (fileName, sequence) => {
+  const newName = fileName.split(".")[0] + "-" + sequence + ".jpeg";
+  return newName;
+};
+
+// Resize image and save - checks if the newly created file is still over the limit, and recursively modifies it, making smaller and smaller
+async function resizeImage(imagePath, fileName, size, sequence = 1) {
   const metadata = await sharp(imagePath).metadata();
   const longEdge = metadata.width > metadata.height ? "width" : "height";
-  let outputPath = `${resizedPath + "resized-" + fileName}`;
-  let toDeletePath;
-  if (fs.existsSync(outputPath)) {
-    outputPath = `${resizedPath + "resized2-" + fileName}`;
-    toDeletePath = `${resizedPath + "resized-" + fileName}`;
-  }
+  const outputPath = path.resolve(resizedPath, generateFileName(fileName, sequence));
+
   try {
     await sharp(imagePath)
       .resize({
         [longEdge]: size,
       })
+      .toFormat("jpeg")
+      .jpeg({ quality: 90, force: true })
       .toFile(outputPath);
-    //here i delete the original file when is being processed twice
-    if (toDeletePath) {
-      fs.unlink(`${resizedPath + "resized-" + fileName}`, (error) => {
+
+    console.log("Image resized, original: ", fileName);
+    // re-check if new size is over the limit
+    const isLarge = isSizeGreaterThanLimit(outputPath, maxSizeInMb);
+    if (isLarge) {
+      sequence += 1;
+      size -= 500;
+      await resizeImage(outputPath, fileName, size, sequence);
+      const prevFile = outputPath.split("."[0] + "-" + sequence - 1 + ".jpeg")[0];
+      console.log("delete old file", prevFile);
+      await fs.unlink(prevFile, (error) => {
         if (error) {
           console.log(`Failed to delete the original file: ${error}`);
-        } else {
-          console.log(`Re-processed initial file ${toDeletePath} deleted successfully.`);
         }
       });
-      console.log("Image re-processed", fileName);
     }
   } catch (error) {
     console.log(error);
   }
 }
 
-// Check if new imagesize is still > 6Mb
-const recheck = (fileName) => {
-  const filePath = path.resolve(resizedPath, "resized-" + fileName);
-  const isLarge = isSizeGreaterThanLimit(filePath, maxSizeInMb);
-  isLarge ? resizeImage(filePath, fileName, 2000) : null;
-};
-
 // Process image
 async function processImage(imagePath, fileName) {
   try {
-    const metadata = await sharp(imagePath).metadata();
     await resizeImage(imagePath, fileName, 2500);
-    recheck(fileName);
-    console.log("Image processed: ", fileName);
   } catch (error) {
     console.log(`An error occurred during processing: ${error}`);
   }
 }
 
-function iteration(pathName) {
-  const results = pathName;
-  const filtered = results.filter((res) => {
-    return res !== ".DS_Store";
-  });
+async function iteration(folderPath) {
+  const filesToProcess = fs.readdirSync(folderPath).filter((file) => !file.startsWith("."));
+  console.log(filesToProcess);
 
-  filtered.forEach((file) => {
-    const img = fs.lstatSync(path.resolve("images", file));
-    const isLarge = isSizeGreaterThanLimit(path.resolve("images", file), maxSizeInMb);
+  for (const file of filesToProcess) {
+    const imagePath = path.resolve(folderPath, file);
+    const isLarge = isSizeGreaterThanLimit(imagePath, maxSizeInMb);
+
     if (isLarge) {
-      processImage(path.resolve("images", file), file);
+      const resizedImageFileName = generateFileName(file, 1);
+      const resizedImagePath = path.resolve(resizedPath, resizedImageFileName);
+      if (!fs.existsSync(resizedImagePath)) {
+        await processImage(imagePath, file);
+      }
     }
-  });
+  }
 }
 
-iteration(fs.readdirSync(path.resolve(__dirname, "images")));
+iteration("images").catch((error) => {
+  console.log(`An error occurred: ${error}`);
+});
