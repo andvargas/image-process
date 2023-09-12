@@ -1,11 +1,10 @@
 # Image processing app
 
-I've done this project as a technical assessment for a job interview. In the interview I couldn't complete it, I barely started on it, as I didn't prepare in Node.js, and I was shocked. I completed the task at home on my own pace, but it took me more than an hour.
-
-Still need to sort out one thing: when I save the output, it saves as the same file type, this should be changed to jpeg with a 90% quality. Initially, it saves in the same file type, but in this case, I can't specify the quality.
+I've done this project as a technical assessment for a job interview, during which, I was unable to complete it, so I took some time to understand and completed the task at home at my own pace.
 
 ## 1.0.1
 
-- Changes all output file extension to .jpeg
-- Output file quality is set to 90%
-- recursive function fixed
+- Iterates over a folder of files
+- Checks the filesize of each image, if > 6Mb, reduce the size to max 2500 px and try again
+- Checks the newly created file - if still > 6Mb, reduce to 2000 px and try again
+- Files are saved in a new folder
