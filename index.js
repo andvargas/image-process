@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+const prompt = require("prompt-sync")();
 
 const resizedPath = "./images/resized/"; // specify the output folder
 const maxSizeInMb = 0.9; // Specify file size in Mb
@@ -79,6 +80,8 @@ async function iteration(folderPath) {
   }
 }
 
-iteration("images").catch((error) => {
+// input absolute path to folder - if left empty, iterates through the images folder of this project
+const pathToImages = prompt("Please enter absolute path to the images folder, or leave empty for default images folder os this project:", "images");
+iteration(pathToImages).catch((error) => {
   console.log(`An error occurred: ${error}`);
 });
