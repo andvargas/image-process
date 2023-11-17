@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "prompt-sync": "^4.2.0",
-    "sharp": "^0.32.1"
+    "sharp": "^0.32.6"
   }
 }

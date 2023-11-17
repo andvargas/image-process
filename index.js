@@ -81,7 +81,7 @@ async function iteration(folderPath) {
 }
 
 // input absolute path to folder - if left empty, iterates through the images folder of this project
-const pathToImages = prompt("Please enter absolute path to the images folder, or leave empty for default images folder os this project:", "images");
+const pathToImages = prompt("Please enter absolute path to the images folder, or leave empty for default images folder of this project:", "images");
 iteration(pathToImages).catch((error) => {
   console.log(`An error occurred: ${error}`);
 });
